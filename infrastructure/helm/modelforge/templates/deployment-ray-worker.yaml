@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "modelforge.fullname" . }}-ray-worker
+  labels:
+    {{- include "modelforge.labels" . | nindent 4 }}
+    app.kubernetes.io/component: ray-worker
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "modelforge.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: ray-worker
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "modelforge.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/component: ray-worker
+    spec:
+      containers:
+        - name: ray-worker
+          image: "rayproject/ray:2.9.0-py310"
+          command: ["/bin/bash", "-c", "ray start --address={{ include "modelforge.fullname" . }}-ray-head:6379 --block"]
+          resources:
+            limits:
+              cpu: 8000m
+              memory: 32Gi
+              nvidia.com/gpu: 1
+            requests:
+              cpu: 4000m
+              memory: 16Gi
+              nvidia.com/gpu: 1

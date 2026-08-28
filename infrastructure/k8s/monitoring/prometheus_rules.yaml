@@ -1,0 +1,61 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: modelforge-mlops-alerts
+  labels:
+    prometheus: k8s
+    role: alert-rules
+    app.kubernetes.io/name: modelforge
+spec:
+  groups:
+    - name: modelforge.serving.alerts
+      rules:
+        - alert: HighModelServingLatencyP99
+          expr: histogram_quantile(0.99, sum(rate(modelforge_inference_latency_ms_bucket[5m])) by (le, endpoint)) > 150
+          for: 2m
+          labels:
+            severity: critical
+            tier: serving
+          annotations:
+            summary: "Model endpoint {{ $labels.endpoint }} P99 latency exceeded 150ms"
+            description: "High inference serving latency observed: {{ $value }}ms. Check GPU contention or trigger horizontal autoscaler."
+
+        - alert: HighInferenceErrorRate
+          expr: sum(rate(modelforge_inference_requests_total{status="ERROR"}[5m])) / sum(rate(modelforge_inference_requests_total[5m])) > 0.05
+          for: 1m
+          labels:
+            severity: critical
+            tier: serving
+          annotations:
+            summary: "Inference Error Rate > 5% on {{ $labels.endpoint }}"
+            description: "Error rate is {{ $value | humanizePercentage }}. Automated circuit breaker / canary rollback initiated."
+
+        - alert: SignificantFeatureDriftDetected
+          expr: modelforge_feature_psi_drift_score > 0.20
+          for: 10m
+          labels:
+            severity: warning
+            tier: drift
+          annotations:
+            summary: "PSI Data Drift threshold breached for {{ $labels.feature }}"
+            description: "Observed PSI score {{ $value }} > 0.20. Triggering automated continuous retraining pipeline."
+
+        - alert: GPUMemorySaturation
+          expr: container_gpu_memory_used_bytes / container_gpu_memory_total_bytes > 0.90
+          for: 3m
+          labels:
+            severity: warning
+            tier: infrastructure
+          annotations:
+            summary: "GPU VRAM utilization above 90%"
+            description: "Pod {{ $labels.pod }} GPU memory is at {{ $value | humanizePercentage }}. Consider batch size reduction."
+
+        - alert: CanaryTrafficRolloutStalled
+          expr: modelforge_canary_stage_percentage > 0 and modelforge_canary_stage_percentage < 100 and changes(modelforge_canary_stage_percentage[1h]) == 0
+          for: 30m
+          labels:
+            severity: info
+            tier: governance
+          annotations:
+            summary: "Canary rollout staged at {{ $value }}% for over 1 hour"
+            description: "Evaluate canary metrics and proceed to full promotion or rollback."

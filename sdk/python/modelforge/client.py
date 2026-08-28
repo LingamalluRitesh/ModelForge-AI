@@ -73,6 +73,10 @@ class ModelForgeClient:
         self._predictions = None
         self._monitoring = None
         self._pipelines = None
+        self._causal = None
+        self._federated = None
+        self._governance = None
+        self._security = None
 
     def request(
         self,
@@ -116,6 +120,14 @@ class ModelForgeClient:
                     raise ModelForgeError(f"Network communication failed after 3 attempts: {conn_err}")
                 time.sleep(1.0 * (2 ** attempt))
 
+    def _request(self, method: str, path: str, **kwargs) -> Dict[str, Any]:
+        """Internal helper forwarding to request()."""
+        json_data = kwargs.get("json") or kwargs.get("json_data")
+        params = kwargs.get("params")
+        files = kwargs.get("files")
+        headers = kwargs.get("headers")
+        return self.request(method=method, path=path, params=params, json_data=json_data, files=files, headers=headers)
+
     @property
     def projects(self):
         if self._projects is None:
@@ -133,8 +145,8 @@ class ModelForgeClient:
     @property
     def features(self):
         if self._features is None:
-            from modelforge.features import FeatureManager
-            self._features = FeatureManager(self)
+            from modelforge.feature_store import FeatureStoreModule
+            self._features = FeatureStoreModule(self)
         return self._features
 
     @property
@@ -178,3 +190,31 @@ class ModelForgeClient:
             from modelforge.pipelines import PipelineManager
             self._pipelines = PipelineManager(self)
         return self._pipelines
+
+    @property
+    def causal(self):
+        if self._causal is None:
+            from modelforge.causal import CausalModule
+            self._causal = CausalModule(self)
+        return self._causal
+
+    @property
+    def federated(self):
+        if self._federated is None:
+            from modelforge.federated import FederatedModule
+            self._federated = FederatedModule(self)
+        return self._federated
+
+    @property
+    def governance(self):
+        if self._governance is None:
+            from modelforge.governance import GovernanceModule
+            self._governance = GovernanceModule(self)
+        return self._governance
+
+    @property
+    def security(self):
+        if self._security is None:
+            from modelforge.security import SecurityModule
+            self._security = SecurityModule(self)
+        return self._security
