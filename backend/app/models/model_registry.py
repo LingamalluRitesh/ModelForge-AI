@@ -92,7 +92,7 @@ class ModelVersion(Base):
     experiment_run = relationship("ExperimentRun", back_populates="registered_models")
     creator = relationship("User")
     approval_requests: Mapped[List["ModelApprovalRequest"]] = relationship("ModelApprovalRequest", back_populates="model_version", cascade="all, delete-orphan")
-    deployments = relationship("Deployment", back_populates="model_version")
+    deployments = relationship("Deployment", foreign_keys="[Deployment.model_version_id]", back_populates="model_version")
 
 
 class ModelApprovalRequest(Base):

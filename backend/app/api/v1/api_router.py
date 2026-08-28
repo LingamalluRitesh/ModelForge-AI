@@ -25,6 +25,11 @@ from app.api.v1.endpoints.monitoring import (
     alert_router,
     audit_router,
 )
+from app.api.v1.endpoints.feature_store import router as feature_store_router
+from app.api.v1.endpoints.governance import router as governance_router
+from app.api.v1.endpoints.causal import router as causal_router
+from app.api.v1.endpoints.federated import router as federated_router
+from app.api.v1.endpoints.security_audit import router as security_router
 
 api_router = APIRouter()
 
@@ -45,3 +50,8 @@ api_router.include_router(xai_router)
 api_router.include_router(pipe_router)
 api_router.include_router(alert_router)
 api_router.include_router(audit_router)
+api_router.include_router(feature_store_router)
+api_router.include_router(governance_router)
+api_router.include_router(causal_router)
+api_router.include_router(federated_router)
+api_router.include_router(security_router)
