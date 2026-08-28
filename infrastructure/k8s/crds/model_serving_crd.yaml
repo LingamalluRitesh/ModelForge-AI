@@ -1,0 +1,146 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: modelservingdeployments.ai.modelforge
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.14.0
+  labels:
+    app.kubernetes.io/name: modelforge-operator
+    app.kubernetes.io/part-of: modelforge-platform
+spec:
+  group: ai.modelforge
+  names:
+    kind: ModelServingDeployment
+    listKind: ModelServingDeploymentList
+    plural: modelservingdeployments
+    singular: modelservingdeployment
+    shortNames:
+      - msd
+      - modeldeploy
+  scope: Namespaced
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      subresources:
+        status: {}
+        scale:
+          specReplicasPath: .spec.scaling.minReplicas
+          statusReplicasPath: .status.currentReplicas
+      schema:
+        openAPIV3Schema:
+          type: object
+          description: ModelServingDeployment is the Schema for the ModelForge AI serving operator.
+          properties:
+            apiVersion:
+              type: string
+            kind:
+              type: string
+            metadata:
+              type: object
+            spec:
+              type: object
+              required:
+                - modelUri
+                - framework
+              properties:
+                modelUri:
+                  type: string
+                  description: S3 or GCS storage path for serialized model artifact (ONNX/Pickle/PyTorch).
+                framework:
+                  type: string
+                  enum: [xgboost, lightgbm, pytorch, onnx, scikit-learn, tabnet]
+                  description: Machine learning runtime framework.
+                runtimeEngine:
+                  type: string
+                  default: onnxruntime
+                  enum: [onnxruntime, triton, torchserve, native-python]
+                scaling:
+                  type: object
+                  properties:
+                    minReplicas:
+                      type: integer
+                      minimum: 1
+                      default: 1
+                    maxReplicas:
+                      type: integer
+                      maximum: 100
+                      default: 10
+                    targetQPSPerPod:
+                      type: integer
+                      default: 500
+                    targetLatencyMs:
+                      type: number
+                      default: 50.0
+                trafficPolicy:
+                  type: object
+                  properties:
+                    strategy:
+                      type: string
+                      enum: [direct, canary, ab_test, shadow]
+                      default: direct
+                    canaryWeight:
+                      type: number
+                      minimum: 0.0
+                      maximum: 100.0
+                      default: 0.0
+                    shadowMirrorPercentage:
+                      type: number
+                      minimum: 0.0
+                      maximum: 100.0
+                      default: 0.0
+                resources:
+                  type: object
+                  properties:
+                    limits:
+                      type: object
+                      properties:
+                        cpu:
+                          type: string
+                          default: "2000m"
+                        memory:
+                          type: string
+                          default: "4Gi"
+                        nvidia.com/gpu:
+                          type: string
+                          default: "0"
+                    requests:
+                      type: object
+                      properties:
+                        cpu:
+                          type: string
+                          default: "500m"
+                        memory:
+                          type: string
+                          default: "1Gi"
+            status:
+              type: object
+              properties:
+                phase:
+                  type: string
+                  enum: [Pending, Initializing, Ready, Updating, Failed, RolledBack]
+                endpointUrl:
+                  type: string
+                currentReplicas:
+                  type: integer
+                observedGeneration:
+                  type: integer
+                lastTelemetrySync:
+                  type: string
+                  format: date-time
+                conditions:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      type:
+                        type: string
+                      status:
+                        type: string
+                      reason:
+                        type: string
+                      message:
+                        type: string
+                      lastTransitionTime:
+                        type: string
+                        format: date-time

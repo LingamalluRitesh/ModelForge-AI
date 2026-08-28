@@ -1,0 +1,104 @@
+# ModelForge AI - Helm Values Configuration
+global:
+  environment: production
+  domain: modelforge.enterprise.internal
+  imageRegistry: ghcr.io/lingamalluritesh
+
+backend:
+  replicaCount: 3
+  image:
+    repository: modelforge-backend
+    tag: v2.4.0
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8000
+  resources:
+    limits:
+      cpu: "2000m"
+      memory: "4Gi"
+    requests:
+      cpu: "500m"
+      memory: "1Gi"
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 20
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+  env:
+    ENVIRONMENT: production
+    LOG_LEVEL: INFO
+    DATABASE_URL: "postgresql+asyncpg://postgres_user:pg_secret@modelforge-postgres:5432/modelforge"
+    REDIS_URL: "redis://modelforge-redis:6379/0"
+    STORAGE_TYPE: s3
+    S3_BUCKET_NAME: modelforge-production-artifacts
+
+celeryWorker:
+  replicaCount: 4
+  image:
+    repository: modelforge-worker
+    tag: v2.4.0
+    pullPolicy: IfNotPresent
+  concurrency: 8
+  resources:
+    limits:
+      cpu: "4000m"
+      memory: "8Gi"
+    requests:
+      cpu: "1000m"
+      memory: "2Gi"
+
+frontend:
+  replicaCount: 2
+  image:
+    repository: modelforge-frontend
+    tag: v2.4.0
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 3000
+  resources:
+    limits:
+      cpu: "1000m"
+      memory: "1Gi"
+    requests:
+      cpu: "200m"
+      memory: "256Mi"
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/proxy-body-size: "500m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+  hosts:
+    - host: modelforge.enterprise.internal
+      paths:
+        - path: /api
+          pathType: Prefix
+          backend:
+            service:
+              name: modelforge-backend
+              port:
+                number: 8000
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: modelforge-frontend
+              port:
+                number: 3000
+  tls:
+    - secretName: modelforge-tls-cert
+      hosts:
+        - modelforge.enterprise.internal
+
+prometheus:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    interval: 15s
+    scrapeTimeout: 10s

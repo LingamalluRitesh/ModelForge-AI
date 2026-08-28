@@ -1,0 +1,16 @@
+apiVersion: v2
+name: modelforge
+description: Enterprise Machine Learning Lifecycle & Model Operations Platform Helm Chart
+type: application
+version: 1.0.0
+appVersion: "2.4.0"
+keywords:
+  - mlops
+  - machine-learning
+  - kubernetes
+  - modelforge
+  - feature-store
+  - model-registry
+maintainers:
+  - name: ModelForge Architecture Team
+    email: devops@modelforge.ai
