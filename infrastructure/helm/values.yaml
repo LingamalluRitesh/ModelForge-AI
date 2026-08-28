@@ -1,0 +1,82 @@
+# ModelForge AI Helm Values
+
+global:
+  environment: production
+  domain: modelforge.enterprise.internal
+
+api:
+  replicaCount: 3
+  image:
+    repository: modelforge/api
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8000
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 4Gi
+    requests:
+      cpu: 500m
+      memory: 1Gi
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 15
+    targetCPUUtilizationPercentage: 70
+
+worker:
+  replicaCount: 4
+  image:
+    repository: modelforge/worker
+    tag: latest
+    pullPolicy: IfNotPresent
+  resources:
+    limits:
+      cpu: 4000m
+      memory: 8Gi
+    requests:
+      cpu: 1000m
+      memory: 2Gi
+
+frontend:
+  replicaCount: 2
+  image:
+    repository: modelforge/frontend
+    tag: latest
+  service:
+    type: ClusterIP
+    port: 3000
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  hosts:
+    - host: modelforge.enterprise.com
+      paths:
+        - path: /
+          pathType: Prefix
+          backend: frontend
+        - path: /api/v1
+          pathType: Prefix
+          backend: api
+  tls:
+    - secretName: modelforge-tls-cert
+      hosts:
+        - modelforge.enterprise.com
+
+postgresql:
+  enabled: true
+  auth:
+    username: modelforge_user
+    password: modelforge_password
+    database: modelforge_db
+
+redis:
+  enabled: true
+  architecture: standalone
+  auth:
+    enabled: false
