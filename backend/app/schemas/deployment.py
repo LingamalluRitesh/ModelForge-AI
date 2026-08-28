@@ -15,6 +15,7 @@ class DeploymentCreate(BaseModel):
     strategy: str = "direct"         # direct, canary, ab_test, shadow
     secondary_model_version_id: Optional[str] = None
     primary_traffic_percentage: float = 100.0
+    canary_stage_percentage: float = 0.0
     min_replicas: int = 1
     max_replicas: int = 5
     cpu_limit: str = "1000m"
@@ -40,13 +41,16 @@ class CanaryUpdateRequest(BaseModel):
     notes: Optional[str] = None
 
 
+CanaryTrafficUpdateRequest = CanaryUpdateRequest
+
+
 class ABTestTrafficUpdateRequest(BaseModel):
     primary_traffic_percentage: float = Field(..., ge=0.0, le=100.0)
     secondary_model_version_id: str
 
 
 class RollbackRequest(BaseModel):
-    target_model_version_id: str
+    target_model_version_id: Optional[str] = None
     reason: str
 
 
@@ -60,6 +64,9 @@ class DeploymentRollbackResponse(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+RollbackHistoryResponse = DeploymentRollbackResponse
 
 
 class DeploymentResponse(BaseModel):
@@ -85,6 +92,5 @@ class DeploymentResponse(BaseModel):
     auto_rollback_enabled: bool
     created_at: datetime
     updated_at: datetime
-    rollbacks: List[DeploymentRollbackResponse] = []
 
     model_config = {"from_attributes": True}

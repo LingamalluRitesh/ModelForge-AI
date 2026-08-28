@@ -39,6 +39,10 @@ class AuthService:
         query = select(Role).where(Role.name == RoleEnum.ML_ENGINEER)
         res = await self.session.execute(query)
         ml_role = res.scalar_one_or_none()
+        if not ml_role:
+            ml_role = Role(name=RoleEnum.ML_ENGINEER, display_name="ML Engineer", is_system_role=True)
+            self.session.add(ml_role)
+            await self.session.flush()
 
         user = User(
             email=payload.email,
@@ -48,8 +52,7 @@ class AuthService:
             is_active=True,
             is_verified=True,
         )
-        if ml_role:
-            user.roles.append(ml_role)
+        user.roles.append(ml_role)
         self.session.add(user)
         await self.session.flush()
 
@@ -60,7 +63,11 @@ class AuthService:
         # Fetch Org Admin role
         query = select(Role).where(Role.name == RoleEnum.ORG_ADMIN)
         res = await self.session.execute(query)
-        org_admin_role = res.scalar_one_or_none() or ml_role
+        org_admin_role = res.scalar_one_or_none()
+        if not org_admin_role:
+            org_admin_role = Role(name=RoleEnum.ORG_ADMIN, display_name="Organization Admin", is_system_role=True)
+            self.session.add(org_admin_role)
+            await self.session.flush()
 
         org = Organization(
             name=org_name,

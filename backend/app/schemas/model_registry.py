@@ -16,8 +16,12 @@ class RegisteredModelCreate(BaseModel):
 
 class ModelVersionCreate(BaseModel):
     version_tag: str  # e.g. "v1.0.0"
-    experiment_run_id: str
+    experiment_run_id: Optional[str] = None
     description: Optional[str] = None
+    algorithm_name: Optional[str] = "xgboost"
+    framework: Optional[str] = "xgboost"
+    storage_uri: Optional[str] = "models/model.pkl"
+    metrics: Optional[Dict[str, Any]] = None
 
 
 class ModelApprovalRequestCreate(BaseModel):
@@ -62,7 +66,6 @@ class ModelVersionResponse(BaseModel):
     description: Optional[str] = None
     created_at: datetime
     updated_at: datetime
-    approval_requests: List[ModelApprovalRequestResponse] = []
 
     model_config = {"from_attributes": True}
 
@@ -77,7 +80,6 @@ class RegisteredModelResponse(BaseModel):
     is_archived: bool
     created_at: datetime
     updated_at: datetime
-    versions: List[ModelVersionResponse] = []
 
     model_config = {"from_attributes": True}
 
