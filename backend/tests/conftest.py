@@ -3,6 +3,14 @@ ModelForge AI - Pytest Test Configuration & Shared Fixtures
 Provides in-memory async SQLite test sessions, FastAPI TestClient, and mock JWT tokens.
 """
 
+import sys
+from pathlib import Path
+
+# Ensure backend directory is first in sys.path
+backend_dir = Path(__file__).resolve().parent.parent
+if str(backend_dir) not in sys.path:
+    sys.path.insert(0, str(backend_dir))
+
 import asyncio
 from typing import AsyncGenerator, Generator
 import pytest
@@ -11,6 +19,7 @@ from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 
 from app.core.database import Base, get_async_db
+from app.api.deps import get_db
 from app.core.security import create_access_token, get_password_hash
 from app.models.user import User, Role, RoleEnum
 from app.models.organization import Organization, OrganizationMember
@@ -61,6 +70,7 @@ async def client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
     async def override_get_db():
         yield db_session
 
+    app.dependency_overrides[get_db] = override_get_db
     app.dependency_overrides[get_async_db] = override_get_db
 
     transport = ASGITransport(app=app)

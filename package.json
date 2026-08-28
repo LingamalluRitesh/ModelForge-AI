@@ -1,0 +1,18 @@
+{
+  "name": "modelforge-ai-workspace",
+  "version": "1.0.0",
+  "description": "ModelForge AI — Enterprise Machine Learning Lifecycle & Model Operations Platform",
+  "private": true,
+  "license": "UNLICENSED",
+  "scripts": {
+    "dev": "npm run dev --prefix frontend",
+    "build": "npm run build --prefix frontend",
+    "start": "npm run start --prefix frontend",
+    "lint": "npm run lint --prefix frontend",
+    "backend:dev": "python run.py",
+    "test": "cd backend && python -m pytest tests/ -v"
+  },
+  "workspaces": [
+    "frontend"
+  ]
+}
