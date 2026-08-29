@@ -31,6 +31,7 @@ from app.api.v1.endpoints.causal import router as causal_router
 from app.api.v1.endpoints.federated import router as federated_router
 from app.api.v1.endpoints.security_audit import router as security_router
 from app.api.v1.endpoints.hpo import router as hpo_router
+from app.api.v1.endpoints.experiment_runs import router as experiment_runs_router
 
 api_router = APIRouter()
 
@@ -57,3 +58,4 @@ api_router.include_router(causal_router)
 api_router.include_router(federated_router)
 api_router.include_router(security_router)
 api_router.include_router(hpo_router)
+api_router.include_router(experiment_runs_router)
