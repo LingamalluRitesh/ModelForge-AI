@@ -33,6 +33,7 @@ from app.api.v1.endpoints.security_audit import router as security_router
 from app.api.v1.endpoints.hpo import router as hpo_router
 from app.api.v1.endpoints.experiment_runs import router as experiment_runs_router
 from app.api.v1.endpoints.artifact_security import router as artifact_security_router
+from app.api.v1.endpoints.gpu_metrics import router as gpu_metrics_router
 
 api_router = APIRouter()
 
@@ -61,3 +62,4 @@ api_router.include_router(security_router)
 api_router.include_router(hpo_router)
 api_router.include_router(experiment_runs_router)
 api_router.include_router(artifact_security_router)
+api_router.include_router(gpu_metrics_router)
